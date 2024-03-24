@@ -11,6 +11,7 @@ import java.util.Objects;
 public class NotificationTask {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
     private Long chat_id;
     private String message;
     private LocalDateTime data;
