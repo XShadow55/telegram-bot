@@ -51,15 +51,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener  {
                telegramBot.execute(message);
            }
            Pattern pattern = Pattern.compile(patterns);
-           logger.info(update.message().text());
-           Matcher matcher = pattern.matcher(input);
+           logger.info(String.valueOf(update.message().chat().id()));
+           Matcher matcher = pattern.matcher(update.message().text());
            if (matcher.matches()) {
                String date = matcher.group(1);
                String item = matcher.group(3);
-               logger.info(matcher.group(3));
-               String welcomeMessage = "Введи сообщение для напоминания: ";
-               SendMessage message = new SendMessage(update.message().chat().id(),welcomeMessage);
-               telegramBot.execute(message);
+
                LocalDateTime dateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
                NotificationTask notificationTask = new NotificationTask(update.message().chat().id(),item,dateTime);
                taskRepository.save(notificationTask);
@@ -71,11 +68,16 @@ public class TelegramBotUpdatesListener implements UpdatesListener  {
     @Scheduled(cron = "0 0/1 * * * *")
     public void  run() {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
-        List<NotificationTask> entities = taskRepository.findByExecutionTime(now);
+        List<NotificationTask> entities = taskRepository.findByData(now);
+        logger.info(entities.toString());
         for (int i=0;i < entities.size();i++) {
             SendMessage message = new SendMessage(entities.get(i).getChat_id(), entities.get(i).getMessage());
+            logger.info(entities.get(i).getMessage());
             telegramBot.execute(message);
+            taskRepository.delete(entities.get(i));
+
         }
+
     }
 
 
